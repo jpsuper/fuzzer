@@ -1,0 +1,3 @@
+:method OPTIONS
+:path /
+:scheme http1.1
