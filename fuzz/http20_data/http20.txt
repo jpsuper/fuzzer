@@ -1,4 +1,4 @@
 :method GET
 :path /
 :scheme http
-:authority nghtttp2.org
+:authority sample.com
