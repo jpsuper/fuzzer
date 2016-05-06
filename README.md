@@ -1,6 +1,6 @@
 # fuzzer
 fuzzer is simple fuzzing tool.
-
+Please read [wiki](https://github.com/jpsuper/fuzzer/wiki)
 #Dependency
 openssl >= 1.0.2
 
