@@ -12,4 +12,5 @@ libstdc++
 
 #Usage
 check help command
+
 ./fuzzer -h
