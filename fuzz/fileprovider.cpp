@@ -11,35 +11,35 @@
 #include "fileexception.h"
 
 unsigned int fileprovider::get_count(){
-  return m_files.size();
+        return m_files.size();
 }
 
 std::string fileprovider::get_data(unsigned int index){
 
-  std::string data;
-  if(get_count() < index){
-    throw fileexception(fileexception::overindex);
-  }
+        std::string data;
+        if(get_count() < index) {
+                throw fileexception(fileexception::overindex);
+        }
 
-  std::ifstream in(m_files[index], std::ios::in | std::ios::binary);
+        std::ifstream in(m_files[index], std::ios::in | std::ios::binary);
 
-  if(!in){
-    throw fileexception(fileexception::notopened);
-  }
+        if(!in) {
+                throw fileexception(fileexception::notopened);
+        }
 
-  char ch;
-  std::vector<char> c_data;
-  while(1){
-    in.get(ch);
-    if(!in.eof())
-      c_data.push_back(ch);
-    else
-      break;
-  }
-  in.close();
+        char ch;
+        std::vector<char> c_data;
+        while(1) {
+                in.get(ch);
+                if(!in.eof())
+                        c_data.push_back(ch);
+                else
+                        break;
+        }
+        in.close();
 
-  data = std::string(c_data.begin(),c_data.end());
+        data = std::string(c_data.begin(),c_data.end());
 
 
-  return data;
+        return data;
 }

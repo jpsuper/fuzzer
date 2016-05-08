@@ -1,4 +1,4 @@
 :method GET
 :path /
 :scheme http
-:authority sample.com
+:authority 127.0.0.1

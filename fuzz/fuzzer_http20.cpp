@@ -9,25 +9,23 @@ int fuzzer_http20::start_fuzzing()
         unsigned int n = m_p.get_count();
         for(unsigned int i=0; i<n; i++) {
                 try{
-                        std::cout << "i: " << i << std::endl;
                         int sockfd = create_connection();
 
                         send_connectionpreface(sockfd);
 
                         send_settingframe(sockfd);
 
-                        std::string data = m_p.get_data(0);
+                        std::string data = m_p.get_data(i);
 
                         send_data(sockfd,0,data);
 
-                        std::string rcv_string = recv_data(sockfd,0);
+                        std::string rcv_str = recv_data(sockfd,0);
 
                         send_goawayframe(sockfd);
 
                         close_connection(sockfd);
 
-                        //Huffman暗号をdecode出来ないため未実装
-                        //output(i,data,rcv_data);
+                        output(i,data,rcv_str);
 
                         check_connection(i,data);
                 } catch(fileexception e) {
@@ -128,7 +126,7 @@ void fuzzer_http20::send_data(int sockfd,SSL *ssl,std::string data){
 std::string fuzzer_http20::recv_data(int sockfd,SSL *ssl){
         char buf[BUF_SIZE] = { 0 };
         char* p = buf;
-
+        std::string rcv_str;
 
         int payload_length = 0;
         int frame_type = 0;
@@ -191,10 +189,6 @@ std::string fuzzer_http20::recv_data(int sockfd,SSL *ssl){
         }
 
         //HEADERSフレームのpayload受信
-        //p[0]を、バイナリ比較できればheaderが出せる。
-        //例
-        // p[0]が88なら,:status 200
-
         memset(buf, 0x00, payload_length);
         p = buf;
 
@@ -202,6 +196,18 @@ std::string fuzzer_http20::recv_data(int sockfd,SSL *ssl){
                 close_connection(sockfd);
                 throw socketexception(socketexception::recv_failed);
         }
+
+        //Headerの確認　(Huffman encodeされていない物のみ)
+        std::map<int, std::string>::iterator it =
+                m_statictable.find(std::char_traits<char>::to_int_type(p[0]));
+
+        if (it == m_statictable.end()) {
+                ;
+        }else {
+                rcv_str = m_statictable[it->first];
+                rcv_str += "\n";
+        }
+
 
         //DATAフレームの受信
         //payloadの長さを取得
@@ -211,8 +217,6 @@ std::string fuzzer_http20::recv_data(int sockfd,SSL *ssl){
         to_framedata3byte(p, payload_length);
 
         //payloadの受信
-        std::string rcv_str;
-
         while (payload_length > 0) {
 
                 memset(buf, 0x00, BUF_SIZE);
@@ -293,12 +297,12 @@ void fuzzer_http20::output(unsigned int i,std::string data,std::string rcv_str){
         std::replace(data.rbegin(), data.rend(), ',', ' ');
         std::replace(data.rbegin(), data.rend(), '\r', ' ');
         fout <<"\""<<  data.c_str() <<"\"" << ",";
-        if(strncmp(rcv_str.c_str(),"HTTP",4)==0) {
+        if(strncmp(rcv_str.c_str(),":status",7)==0) {
                 unsigned int n;
-                n  = rcv_str.find("\r\n");
+                n  = rcv_str.find("\n");
                 fout << rcv_str.substr(0,n)<< std::endl;
         }else{
-                fout << "No Header" << std::endl;;
+                fout << "Huffman encoded" << std::endl;;
         }
 
         fout.close();

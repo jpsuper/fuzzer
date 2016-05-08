@@ -58,6 +58,16 @@ class fuzzer_https20:public fuzzer
   void send_settingframe(SSL *ssl);
   void send_goawayframe(SSL *ssl);
   void ssl_close(SSL *ssl,SSL_CTX *ctx);
+  std::map<int , std::string> m_statictable =
+  {
+    {0x88, ":status 200"},
+    {0x98, ":status 204"},
+    {0xa8, ":status 206"},
+    {0xb8, ":status 304"},
+    {0xc8, ":status 400"},
+    {0xd8, ":status 404"},
+    {0xe8, ":status 500"},
+  };
   provider &m_p;
   std::string m_ip;
   int m_port;
@@ -65,7 +75,3 @@ class fuzzer_https20:public fuzzer
 
 
 #endif
-
-
-
-

@@ -10,7 +10,7 @@ void help(){
   std::cout << "-https20 Https2.0" << std::endl;
   std::cout << std::endl;
   std::cout << "Options" << std::endl;
-  std::cout << "-stdin Standard Input" << std::endl;
+  std::cout << "-stdin Standard Input (Push ctrl + D when you finish typing)" << std::endl;
   std::cout << "-f [File] File Input" << std::endl;
   std::cout << "-method [File],-uri [File],-version [File] [Other Files] Mix Input" << std::endl;
   std::cout << std::endl;

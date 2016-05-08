@@ -9,7 +9,6 @@ int fuzzer_https20::start_fuzzing(){
         unsigned int n = m_p.get_count();
         for(unsigned int i=0; i<n; i++) {
                 try{
-                        std::cout << "i: " << i << std::endl;
                         SSL *ssl=NULL;
                         SSL_CTX *ctx=NULL;
 
@@ -21,7 +20,7 @@ int fuzzer_https20::start_fuzzing(){
 
                         send_settingframe(ssl);
 
-                        std::string data = m_p.get_data(0);
+                        std::string data = m_p.get_data(i);
 
                         send_data(0,ssl,data);
 
@@ -33,8 +32,7 @@ int fuzzer_https20::start_fuzzing(){
 
                         close_connection(sockfd);
 
-                        //Huffman暗号をdecode出来ないため未実装
-                        //output(i,data,rcv_data);
+                        output(i,data,rcv_str);
 
                         check_connection(i,data);
                 }catch(fileexception e) {
@@ -257,7 +255,6 @@ std::string fuzzer_https20::recv_data(int sockfd,SSL *ssl){
         setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 
         //HEADERSフレームの受信
-
         //payloadの長さ取得
         while (1) {
 
@@ -318,10 +315,6 @@ std::string fuzzer_https20::recv_data(int sockfd,SSL *ssl){
         }
 
         //HEADERSフレームのpayload受信
-        //p[0]を、バイナリ比較できればheaderが出せる。
-        //例
-        // p[0]が88なら,:status 200
-
         while (payload_length > 0) {
 
                 memset(buf, 0x00, BUF_SIZE);
@@ -343,8 +336,19 @@ std::string fuzzer_https20::recv_data(int sockfd,SSL *ssl){
                 payload_length -= r;
         }
 
-        //DATAフレームの受信
 
+        //Headerの確認　(Huffman encodeされていない物のみ)
+        std::map<int, std::string>::iterator it =
+                m_statictable.find(std::char_traits<char>::to_int_type(p[0]));
+
+        if (it == m_statictable.end()) {
+                ;
+        }else {
+                rcv_str = m_statictable[it->first];
+                rcv_str += "\n";
+        }
+
+        //DATAフレームの受信
         //payloadの長さ取得
         while (1) {
 
@@ -436,6 +440,7 @@ void fuzzer_https20::ssl_close(SSL *ssl,SSL_CTX *ctx){
 void fuzzer_https20::close_connection(int sockfd){
         close(sockfd);
 }
+
 void fuzzer_https20::check_connection(unsigned int i,std::string data){
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -483,12 +488,12 @@ void fuzzer_https20::output(unsigned int i,std::string data,std::string rcv_str)
         std::replace(data.rbegin(), data.rend(), ',', ' ');
         std::replace(data.rbegin(), data.rend(), '\r', ' ');
         fout <<"\""<<  data.c_str() <<"\"" << ",";
-        if(strncmp(rcv_str.c_str(),"HTTP",4)==0) {
+        if(strncmp(rcv_str.c_str(),":status",7)==0) {
                 unsigned int n;
-                n  = rcv_str.find("\r\n");
+                n  = rcv_str.find("\n");
                 fout << rcv_str.substr(0,n)<< std::endl;
         }else{
-                fout << "No Header" << std::endl;;
+                fout << "Huffman encoded" << std::endl;;
         }
 
         fout.close();

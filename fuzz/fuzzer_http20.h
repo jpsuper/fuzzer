@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string>
+#include <map>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -51,6 +52,16 @@ class fuzzer_http20:public fuzzer
   void send_connectionpreface(int sockfd);
   void send_settingframe(int sockfd);
   void send_goawayframe(int sockfd);
+  std::map<int , std::string> m_statictable =
+{
+    {0x88, ":status 200"},
+    {0x98, ":status 204"},
+    {0xa8, ":status 206"},
+    {0xb8, ":status 304"},
+    {0xc8, ":status 400"},
+    {0xd8, ":status 404"},
+    {0xe8, ":status 500"},
+};
   provider &m_p;
   std::string m_ip;
   int m_port;
@@ -58,7 +69,3 @@ class fuzzer_http20:public fuzzer
 
 
 #endif
-
-
-
-
